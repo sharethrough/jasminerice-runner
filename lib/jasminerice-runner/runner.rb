@@ -17,7 +17,7 @@ module Jasminerice
 
       wait_for_finished
       results = get_results
-      puts "Jasmine results - Passed: #{results[:passed]} Failed: #{results[:failed]} Total: #{results[:total]}"
+      puts "Jasmine results - Failed: #{results[:failed]} Total: #{results[:total]}"
       failures = results[:failures]
 
       if failures.size == 0
@@ -31,7 +31,7 @@ module Jasminerice
     def jasmine_url
       url = "/jasmine"
       if @environment.present?
-        url += "?environment=#{@environment}"
+        url += "/#{@environment}"
       end
 
       url
@@ -39,23 +39,17 @@ module Jasminerice
 
     def get_results
       {
-        passed: page.evaluate_script("window.jasmineRiceReporter.results.passedCount"),
-        failed: page.evaluate_script("window.jasmineRiceReporter.results.failedCount"),
-        total: page.evaluate_script("window.jasmineRiceReporter.results.totalCount"),
+        failed: page.evaluate_script("window.jasmineRiceReporter.failedCount"),
+        total: page.evaluate_script("window.jasmineRiceReporter.totalCount"),
         failures: page.evaluate_script("window.jasmineRiceReporter.failedSpecs")
       }
     end
 
     def report_failures(failures)
       puts 'Jasmine failures:  '
-      for suiteName,suiteFailures in failures
-        puts "  " + suiteName + "\n"
-        for specName,specFailures in suiteFailures
-          puts "    " + specName + "\n"
-          for specFailure in specFailures
-            puts "      " + specFailure + "\n"
-          end
-        end
+      for failure in failures
+        puts "  " + failure['fullName'] + "\n"
+        puts "    " + failure['message'] + "\n"
         puts "\n"
       end
     end

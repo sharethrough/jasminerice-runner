@@ -1,21 +1,25 @@
 class JasminericeReporter
-  @failedSpecs = {}
-  reportRunnerResults: (runner)->
-    @finished = true
-    @results = runner.results()
 
-  reportSpecResults: (spec) ->
-    #return if @failed
-    @failedSpecs or= {}
-    if spec.results().failedCount > 0
-      failure = ''
-      for expectation in spec.results().getItems()
-        if !expectation.passed()
-          failure = expectation.message
-          @failedSpecs[spec.suite.description] or= {}
-          @failedSpecs[spec.suite.description][spec.description] or= []
-          @failedSpecs[spec.suite.description][spec.description].push(failure)
-#@failed = true
+  jasmineStarted: =>
+    @failedSpecs = []
+    @totalCount = 0
+    @failedCount = 0
+
+  jasmineDone: () ->
+    @finished = true
+
+  specDone: (result) =>
+    @totalCount++
+    if result.failedExpectations.length > 0
+      @failedCount++
+      console.log result.failedExpectations
+      for expectation in result.failedExpectations
+        if !expectation.passed
+          failure =
+            id: result.id
+            fullName: result.fullName
+            message: expectation.message
+          @failedSpecs.push(failure)
 
 # make sure this exists so we don't have timing issue
 # when capybara hits us before the onload function has run
